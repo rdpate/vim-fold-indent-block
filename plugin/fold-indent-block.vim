@@ -1,5 +1,18 @@
+nmap <space> za
+set foldlevelstart=2
 set foldmethod=expr
 set foldexpr=GetIndentFold(v:lnum)
+set foldtext=FoldText()
+
+function! FoldText()
+    "let text = getline(v:foldstart) . '  [' . (v:foldend - v:foldstart + 1) . ' lines] '
+    let text = getline(v:foldstart) . ' '
+    let next = getline(v:foldstart + 1)
+    if next =~? '\v^\s*#'
+        let text .= substitute(next, '\v^\s*', ' ', '') . ' '
+    endif
+    return text
+endfunction
 
 if exists("*shiftwidth")
     function! s:IndentLevel(lnum)
