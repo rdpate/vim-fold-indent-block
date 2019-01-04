@@ -1,9 +1,8 @@
 nnoremap zx zxzz
 nnoremap <silent> <expr> <space> foldclosed(getcurpos()[1]) == -1 ? 'za' : 'zO'
-nnoremap <silent> <leader>h :call <sid>GoUpLess()<cr>
-nnoremap <silent> <leader>j :call <sid>GoDownSame()<cr>
-nnoremap <silent> <leader>k :call <sid>GoUpSame()<cr>
-nnoremap <silent> <leader><leader> :call <sid>GoUpLess()<cr>
+nnoremap <silent> <leader>j m':call <sid>GoDownSame()<cr>
+nnoremap <silent> <leader>k m':call <sid>GoUpSame()<cr>
+nnoremap <silent> <leader><leader> m':call <sid>GoUpLess()<cr>
 function! s:GoUpLess()
     let current = getcurpos()[1]
     let indent = s:IndentLevel(current)
