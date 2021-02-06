@@ -98,7 +98,7 @@ function! s:IndentLevel(lnum)
     let line = getline(a:lnum)
     let tabs = len(substitute(line, '\v^(\t*).*$', '\1', ''))
     let spaces = repeat(' ', &tabstop * tabs)
-    let line = spaces . line[tabs:]
+    let line = spaces . strpart(line, tabs)
     let line = substitute(line, '\v^([ #]*).*', '\1', '')
     return len(line) / shiftwidth()
     endfunction
