@@ -1,13 +1,38 @@
 nnoremap zx zxzz
 nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zazO' : 'zO'
 nnoremap <silent> <space> za
-nnoremap <silent> <leader>j m':call <sid>GoDownSame()<cr>
-nnoremap <silent> <leader>k m':call <sid>GoUpSame()<cr>
-nnoremap <silent> <leader><leader> m':call <sid>GoUpLess()<cr>
+nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpLess(v:count1)<cr>
+nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
+nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
 " is above same as [z when folding by indent? (almost)
 " except folding isn't always by indent!
 "nnoremap <leader><leader> [z^
-function! s:GoUpLess()
+
+function! s:GoUpLess(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoUpLess1()
+        endwhile
+    endfunction
+function! s:GoDownSame(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoDownSame1()
+        endwhile
+    endfunction
+function! s:GoUpSame(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoUpSame1()
+        endwhile
+    endfunction
+function! s:GoUpLess1()
     let current = getcurpos()[1]
     let indent = s:IndentLevel(current)
     "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
@@ -29,7 +54,7 @@ function! s:GoUpLess()
         endwhile
     normal! ^
     endfunction
-function! s:GoDownSame()
+function! s:GoDownSame1()
     let current = getcurpos()[1]
     let indent = s:IndentLevel(current)
     "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
@@ -48,7 +73,7 @@ function! s:GoDownSame()
     endwhile
     normal! ^
     endfunction
-function! s:GoUpSame()
+function! s:GoUpSame1()
     let current = getcurpos()[1]
     let indent = s:IndentLevel(current)
     "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
@@ -93,7 +118,6 @@ function! FoldText()
     let text .= '  '
     return text
     endfunction
-
 function! s:IndentLevel(lnum)
     let line = getline(a:lnum)
     let tabs = len(substitute(line, '\v^(\t*).*$', '\1', ''))
@@ -102,7 +126,6 @@ function! s:IndentLevel(lnum)
     let line = substitute(line, '\v^([ #]*).*', '\1', '')
     return len(line) / shiftwidth()
     endfunction
-
 function! s:NextNonBlankLine(lnum)
     let numlines = line('$')
     let current = a:lnum + 1
@@ -114,7 +137,6 @@ function! s:NextNonBlankLine(lnum)
         endwhile
     return -1
     endfunction
-
 function! GetIndentFold(lnum)
     if getline(a:lnum) =~ '\v^[ #]*$'
         return -1
