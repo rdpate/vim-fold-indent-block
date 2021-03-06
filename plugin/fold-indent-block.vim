@@ -1,6 +1,3 @@
-" License
-    " This material is dedicated to the public domain.
-    " This material is provided "as is".  The authors disclaim all warranties with regard to this material, including all implied warranties of merchantability and fitness.  In no event shall the authors be liable for damages.
 nnoremap zx zxzz
 nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zazO' : 'zO'
 nnoremap <silent> <space> za
