@@ -1,7 +1,8 @@
 nnoremap zx zxzz
 nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zazO' : 'zO'
 nnoremap <silent> <space> za
-nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpLess(v:count1)<cr>
+nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpZero(v:count1)<cr>
+nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>
 nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
 nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
 " is above same as [z when folding by indent? (almost)
@@ -30,6 +31,14 @@ function! s:GoUpSame(count = 1)
     while num < a:count
         let num += 1
         call s:GoUpSame1()
+        endwhile
+    endfunction
+function! s:GoUpZero(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoUpZero1()
         endwhile
     endfunction
 function! s:GoUpLess1()
@@ -89,6 +98,20 @@ function! s:GoUpSame1()
             break
             endif
     endwhile
+    normal! ^
+    endfunction
+function! s:GoUpZero1()
+    let current = getcurpos()[1]
+    while current != 0
+        normal! k
+        let current = getcurpos()[1]
+        if getline(current) =~ '\v^\s*$'
+            continue
+            endif
+        if getline(current) =~ '\v^\S'
+            break
+            endif
+        endwhile
     normal! ^
     endfunction
 
