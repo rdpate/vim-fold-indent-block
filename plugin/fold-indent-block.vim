@@ -122,32 +122,36 @@ set commentstring=#\ %s
 
 function! FoldText()
     let text = getline(v:foldstart)
-    "let text .= '  [+' . (v:foldend - v:foldstart) . ']'
-    " if currnet line isn't a comment, then maybe show next line
+    let tabs = matchstr(text, '\v^\t*')
+    if len(tabs) > 0
+        let text = substitute(text, '\v^\t*', repeat(' ', &tabstop * len(tabs)), '')
+        endif
+    let text .= '… [' . (v:foldend + 1 - v:foldstart) . ' lines]'
+
+    " If current line isn't a comment and the next line is a comment, then include the next line.
     if getline(v:foldstart) !~ '\v^\s*(#|/[/*])'
-        let next = substitute(getline(v:foldstart + 1), '\v^ +', '', '')
+        let next = substitute(getline(v:foldstart + 1), '\v^\s+', '', '')
         if next =~ '\v^(#|/[/*]) '
-            " comment: # or //
-            let text .= '  ' . next
+            " comment: #, //, or /*
+            let text .= ' ' . next
         elseif next =~ '\v^r?"'
             " Python-style docstring (or vim-script comment)
             " also multi-line Python dicts with string keys (unintentionally)
             let next = substitute(next, '\v\c^r?"+ *', '# ', '')
             let next = substitute(next, '\v"+$', '', '')
-            let text .= '  ' . next
+            let text .= ' ' . next
             endif
         endif
-    " append spaces to not crowd if fillchars isn't space for folds
-    let text .= '  '
+
+    let text .= '  '  " Don't crowd if fillchars isn't a space.
     return text
     endfunction
 function! s:IndentLevel(lnum)
     let line = getline(a:lnum)
-    let tabs = len(substitute(line, '\v^(\t*).*$', '\1', ''))
-    let spaces = repeat(' ', &tabstop * tabs)
-    let line = spaces . strpart(line, tabs)
-    let line = substitute(line, '\v^([ #]*).*', '\1', '')
-    return len(line) / shiftwidth()
+    " Count leading tabs as having width of &tabstop.
+    let tabs = len(matchstr(line, '\v^\t*'))
+    let spaces = len(matchstr(line, '\v^ *', tabs))
+    return (tabs * &tabstop + spaces) / shiftwidth()
     endfunction
 function! s:NextNonBlankLine(lnum)
     let numlines = line('$')
