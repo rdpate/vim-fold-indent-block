@@ -1,13 +1,23 @@
 nnoremap zx zxzz
 nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zazO' : 'zO'
 nnoremap <silent> <space> za
-nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpZero(v:count1)<cr>
-nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>
-nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
-nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
-" is above same as [z when folding by indent? (almost)
-" except folding isn't always by indent!
-"nnoremap <leader><leader> [z^
+
+" Navigate by indentation.
+    nnoremap <silent> <leader><leader> :<c-u>call <sid>GoDownZero(v:count1)<cr>zt
+
+    nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>
+    nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
+    nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
+    nnoremap <silent> <leader>l :<c-u>call <sid>GoDownLess(v:count1)<cr>
+
+    " I'm experimenting with sdfg being the left-hand version of hjkl.
+    " This is likely motivated by my using comma as leader.
+    " Note index fingers are down, middle fingers are up, but left-right are according to keyboard position.
+    nnoremap <silent> <leader>s :<c-u>call <sid>GoUpLess(v:count1)<cr>
+    nnoremap <silent> <leader>f :<c-u>call <sid>GoDownSame(v:count1)<cr>
+    nnoremap <silent> <leader>d :<c-u>call <sid>GoUpSame(v:count1)<cr>
+    nnoremap <silent> <leader>g :<c-u>call <sid>GoDownLess(v:count1)<cr>
+
 
 function! s:GoUpLess(count = 1)
     mark '
@@ -15,6 +25,14 @@ function! s:GoUpLess(count = 1)
     while num < a:count
         let num += 1
         call s:GoUpLess1()
+        endwhile
+    endfunction
+function! s:GoDownLess(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoDownLess1()
         endwhile
     endfunction
 function! s:GoDownSame(count = 1)
@@ -41,6 +59,14 @@ function! s:GoUpZero(count = 1)
         call s:GoUpZero1()
         endwhile
     endfunction
+function! s:GoDownZero(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:GoDownZero1()
+        endwhile
+    endfunction
 function! s:GoUpLess1()
     let current = getcurpos()[1]
     let indent = s:IndentLevel(current)
@@ -50,8 +76,28 @@ function! s:GoUpLess1()
         endif
     while current != 0
         normal! k
-        "let current -= 1
-        " 'k' is not always -1 line with folds
+        " j/k is not always 1 line with folds
+        let current = getcurpos()[1]
+        if getline(current) =~ '\v^\s*$'
+            continue
+            endif
+        if s:IndentLevel(current) < indent
+            normal! ^
+            break
+            endif
+        endwhile
+    normal! ^
+    endfunction
+function! s:GoDownLess1()
+    let current = getcurpos()[1]
+    let indent = s:IndentLevel(current)
+    "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
+    if indent == 0
+        let indent = 1
+        endif
+    while current != 0
+        normal! j
+        " j/k is not always 1 line with folds
         let current = getcurpos()[1]
         if getline(current) =~ '\v^\s*$'
             continue
@@ -105,6 +151,24 @@ function! s:GoUpZero1()
     while current != 0
         normal! k
         let current = getcurpos()[1]
+        if getline(current) =~ '\v^\s*$'
+            continue
+            endif
+        if getline(current) =~ '\v^\S'
+            break
+            endif
+        endwhile
+    normal! ^
+    endfunction
+function! s:GoDownZero1()
+    let current = getcurpos()[1]
+    while 1 == 1
+        let prior = current
+        normal! j
+        let current = getcurpos()[1]
+        if prior == current
+            break
+            endif
         if getline(current) =~ '\v^\s*$'
             continue
             endif
