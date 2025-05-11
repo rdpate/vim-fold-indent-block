@@ -3,20 +3,21 @@ nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zaz
 nnoremap <silent> <space> za
 
 " Navigate by indentation.
-    nnoremap <silent> <leader><leader> :<c-u>call <sid>GoDownZero(v:count1)<cr>zt
+    nnoremap <silent> <leader>v :<c-u>call <sid>GoDownZero(v:count1)<cr>zz
+    nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpZero(v:count1)<cr>
 
-    nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>
-    nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
-    nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
-    nnoremap <silent> <leader>l :<c-u>call <sid>GoDownLess(v:count1)<cr>
+    nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>zz
+    nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>zz
+    nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>zz
+    nnoremap <silent> <leader>l :<c-u>call <sid>GoDownLess(v:count1)<cr>zz
 
     " I'm experimenting with sdfg being the left-hand version of hjkl.
     " This is likely motivated by my using comma as leader.
-    " Note index fingers are down, middle fingers are up, but left-right are according to keyboard position.
-    nnoremap <silent> <leader>s :<c-u>call <sid>GoUpLess(v:count1)<cr>
-    nnoremap <silent> <leader>f :<c-u>call <sid>GoDownSame(v:count1)<cr>
-    nnoremap <silent> <leader>d :<c-u>call <sid>GoUpSame(v:count1)<cr>
-    nnoremap <silent> <leader>g :<c-u>call <sid>GoDownLess(v:count1)<cr>
+    " Note up/down are mirrored, but left/right are according to keyboard position.
+    nnoremap <silent> <leader>s :<c-u>call <sid>GoUpLess(v:count1)<cr>zz
+    nnoremap <silent> <leader>f :<c-u>call <sid>GoDownSame(v:count1)<cr>zz
+    nnoremap <silent> <leader>d :<c-u>call <sid>GoUpSame(v:count1)<cr>zz
+    nnoremap <silent> <leader>g :<c-u>call <sid>GoDownLess(v:count1)<cr>zz
 
 
 function! s:GoUpLess(count = 1)
