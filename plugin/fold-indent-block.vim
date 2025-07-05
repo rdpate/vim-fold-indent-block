@@ -19,7 +19,6 @@ nnoremap <silent> <space> za
     nnoremap <silent> <leader>d :<c-u>call <sid>GoUpSame(v:count1)<cr>
     nnoremap <silent> <leader>g :<c-u>call <sid>GoDownLess(v:count1)<cr>
 
-
 function! s:GoUpLess(count = 1)
     mark '
     let num = 0
@@ -185,6 +184,8 @@ set foldtext=FoldText()
 set fillchars+=fold:\ ,
 set commentstring=#\ %s
 
+let s:blank_line = '\v^[\t \]}),]*$'
+
 function! FoldText()
     let text = getline(v:foldstart)
     let tabs = matchstr(text, '\v^\t*')
@@ -224,7 +225,7 @@ function! s:IndentLevel(lnum)
 function! s:PrevNonBlankLine(lnum)
     let current = a:lnum - 1
     while current > 0
-        if getline(current) !~ '\v^[\t ]*$'
+        if getline(current) !~ s:blank_line
             return current
             endif
         let current -= 1
@@ -235,7 +236,7 @@ function! s:NextNonBlankLine(lnum)
     let numlines = line('$')
     let current = a:lnum + 1
     while current <= numlines
-        if getline(current) !~ '\v^[\t ]*$'
+        if getline(current) !~ s:blank_line
             return current
             endif
         let current += 1
@@ -243,7 +244,7 @@ function! s:NextNonBlankLine(lnum)
     return -1
     endfunction
 function! GetIndentFold(lnum)
-    if getline(a:lnum) =~ '\v^[\t ]*$'
+    if getline(a:lnum) =~ s:blank_line
         let next = s:NextNonBlankLine(a:lnum)
         if next == -1
             return '='
