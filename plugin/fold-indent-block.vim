@@ -213,24 +213,11 @@ function! FoldText()
     return text
     endfunction
 function! s:IndentLevel(lnum)
-    if a:lnum < 1
-        return -1
-        endif
     let line = getline(a:lnum)
     " Count leading tabs as having width of &tabstop.
     let tabs = len(matchstr(line, '\v^\t*'))
     let spaces = len(matchstr(line, '\v^ *', tabs))
     return (tabs * &tabstop + spaces) / shiftwidth()
-    endfunction
-function! s:PrevNonBlankLine(lnum)
-    let current = a:lnum - 1
-    while current > 0
-        if getline(current) !~ s:blank_line
-            return current
-            endif
-        let current -= 1
-        endwhile
-    return -1
     endfunction
 function! s:NextNonBlankLine(lnum)
     let numlines = line('$')
@@ -245,15 +232,7 @@ function! s:NextNonBlankLine(lnum)
     endfunction
 function! GetIndentFold(lnum)
     if getline(a:lnum) =~ s:blank_line
-        let next = s:NextNonBlankLine(a:lnum)
-        if next == -1
-            return '='
-            endif
-        let prev = s:PrevNonBlankLine(a:lnum)
-        if prev == -1
-            return 0
-            endif
-        return max([s:IndentLevel(prev), s:IndentLevel(next)])
+        return -1
         endif
 
     let this_indent = s:IndentLevel(a:lnum)
