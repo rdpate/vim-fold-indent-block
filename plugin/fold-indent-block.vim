@@ -23,7 +23,7 @@ function s:go_up_less(count = 1)
     let num = 0
     while num < a:count
         let num += 1
-        call s:_go_less_1('-')
+        call s:_go_less_1('k')
         endwhile
     endfunction
 function s:go_up_same(count = 1)
@@ -31,7 +31,7 @@ function s:go_up_same(count = 1)
     let num = 0
     while num < a:count
         let num += 1
-        call s:_go_less_1('-', 1)
+        call s:_go_less_1('k', 1)
         endwhile
     endfunction
 function s:go_down_less(count = 1)
@@ -42,7 +42,7 @@ function s:go_down_less(count = 1)
     let num = 0
     while num < a:count
         let num += 1
-        call s:_go_less_1('+')
+        call s:_go_less_1('j')
         endwhile
     endfunction
 function s:go_down_same(count = 1)
@@ -50,7 +50,7 @@ function s:go_down_same(count = 1)
     let num = 0
     while num < a:count
         let num += 1
-        call s:_go_less_1('+', 1)
+        call s:_go_less_1('j', 1)
         endwhile
     endfunction
 
@@ -62,15 +62,15 @@ function s:top_go_up(count = 1, mark = 1)
     while need
         " Move up at least one line, and continue until a top line.
         if s:line() == 1 | return | endif
-        -
+        normal! k^
         while ! s:is_top()
             if s:line() == 1 | return | endif
-            -
+            normal! k^
             endwhile
         " Move up until next would be a non-top line.
         if s:line() == 1 | return | endif
         while s:is_top(getline(s:line_prev()))
-            -
+            normal! k^
             if s:line() == 1 | return | endif
             endwhile
 
@@ -84,11 +84,11 @@ function s:top_go_down(count = 1)
     while need && s:line() < last
         " If at a top line, skip consecutive top lines.
         while s:is_top() && s:line() < last
-            +
+            normal! j^
             endwhile
         " Now at a non-top line; search down for a top line.
         while ! s:is_top() && s:line() < last
-            +
+            normal! j^
             endwhile
 
         let need -= 1
@@ -96,13 +96,14 @@ function s:top_go_down(count = 1)
     endfunction
 
 function s:_go_less_1(direction, or_same = 0)
-    if a:direction ==# '-'
+    if a:direction ==# 'k'
         let end = 1
-    elseif a:direction ==# '+'
+    elseif a:direction ==# 'j'
         let end = s:line('$')
     else
-        throw "Invalid direction: must be '+' or '-'"
+        throw "Invalid direction: must be 'j' or 'k'"
         endif
+    let move_1 = "normal! " . a:direction . "^"
     let lineno = s:line()
     if lineno == end
         return
@@ -112,7 +113,7 @@ function s:_go_less_1(direction, or_same = 0)
         let target -= 1
         endif
     while 1
-        execute "normal!" a:direction
+        execute move_1
         let lineno = s:line()
         if lineno == end
             break
