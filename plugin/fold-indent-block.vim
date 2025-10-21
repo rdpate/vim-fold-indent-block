@@ -1,192 +1,218 @@
 nnoremap zx zxzz
-nnoremap <silent> <expr> <leader><space> foldclosed(getcurpos()[1]) == -1 ? 'zazO' : 'zO'
+nnoremap <silent> <expr> <leader><space> foldclosed(line('.')) == -1 ? 'zazO' : 'zO'
 nnoremap <silent> <space> za
 
 " Navigate by indentation.
-    nnoremap <silent> <leader>v :<c-u>call <sid>GoDownZero(v:count1)<cr>
-    nnoremap <silent> <leader><leader> :<c-u>call <sid>GoUpZero(v:count1)<cr>
+    " nnoremap <silent> <leader>h :<c-u>call <sid>go_up_less(v:count1)<cr>
+    nnoremap <silent> <leader>k :<c-u>call <sid>go_up_same(v:count1)<cr>
+    nnoremap <silent> <leader>j :<c-u>call <sid>go_down_same(v:count1)<cr>
+    " nnoremap <silent> <leader>l :<c-u>call <sid>go_down_less(v:count1)<cr>
 
-    nnoremap <silent> <leader>h :<c-u>call <sid>GoUpLess(v:count1)<cr>
-    nnoremap <silent> <leader>j :<c-u>call <sid>GoDownSame(v:count1)<cr>
-    nnoremap <silent> <leader>k :<c-u>call <sid>GoUpSame(v:count1)<cr>
-    nnoremap <silent> <leader>l :<c-u>call <sid>GoDownLess(v:count1)<cr>
+    nnoremap <silent> <leader>s :<c-u>call <sid>go_up_less(v:count1)<cr>
+    nnoremap <silent> <leader>d :<c-u>call <sid>top_go_up(v:count1)<cr>
+    nnoremap <silent> <leader>f :<c-u>call <sid>top_go_down(v:count1)<cr>
+    nnoremap <silent> <leader>g :<c-u>call <sid>go_down_less(v:count1)<cr>
 
-    " I'm experimenting with sdfg being the left-hand version of hjkl.
-    " This is likely motivated by my using comma as leader.
-    " Note up/down are mirrored, but left/right are according to keyboard position.
-    nnoremap <silent> <leader>s :<c-u>call <sid>GoUpLess(v:count1)<cr>
-    nnoremap <silent> <leader>f :<c-u>call <sid>GoDownSame(v:count1)<cr>
-    nnoremap <silent> <leader>d :<c-u>call <sid>GoUpSame(v:count1)<cr>
-    nnoremap <silent> <leader>g :<c-u>call <sid>GoDownLess(v:count1)<cr>
+    nnoremap <silent> <leader><leader> :<c-u>call <sid>top_go_up(v:count1)<cr>
 
-function! s:GoUpLess(count = 1)
+function s:go_up_less(count = 1)
     mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoUpLess1()
-        endwhile
-    endfunction
-function! s:GoDownLess(count = 1)
-    mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoDownLess1()
-        endwhile
-    endfunction
-function! s:GoDownSame(count = 1)
-    mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoDownSame1()
-        endwhile
-    endfunction
-function! s:GoUpSame(count = 1)
-    mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoUpSame1()
-        endwhile
-    endfunction
-function! s:GoUpZero(count = 1)
-    mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoUpZero1()
-        endwhile
-    endfunction
-function! s:GoDownZero(count = 1)
-    mark '
-    let num = 0
-    while num < a:count
-        let num += 1
-        call s:GoDownZero1()
-        endwhile
-    endfunction
-function! s:GoUpLess1()
-    let current = getcurpos()[1]
-    let indent = s:IndentLevel(current)
-    "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
-    if indent == 0
-        let indent = 1
+    if s:is_top()
+        return s:top_go_up(a:count)
         endif
-    while current != 0
-        normal! k
-        " j/k is not always 1 line with folds
-        let current = getcurpos()[1]
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if s:IndentLevel(current) < indent
-            normal! ^
-            break
-            endif
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:_go_less_1('-')
         endwhile
-    normal! ^
     endfunction
-function! s:GoDownLess1()
-    let current = getcurpos()[1]
-    let indent = s:IndentLevel(current)
-    "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
-    if indent == 0
-        let indent = 1
+function s:go_up_same(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:_go_less_1('-', 1)
+        endwhile
+    endfunction
+function s:go_down_less(count = 1)
+    mark '
+    if s:is_top()
+        return s:top_go_down(a:count)
         endif
-    while current != 0
-        normal! j
-        " j/k is not always 1 line with folds
-        let current = getcurpos()[1]
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if s:IndentLevel(current) < indent
-            normal! ^
-            break
-            endif
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:_go_less_1('+')
         endwhile
-    normal! ^
     endfunction
-function! s:GoDownSame1()
-    let current = getcurpos()[1]
-    let indent = s:IndentLevel(current)
-    "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
-    let last = line('$')
-    while current < last
-        normal! j
-        "let current += 1
-        let current = getcurpos()[1]
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if s:IndentLevel(current) <= indent
-            normal! ^
-            break
-            endif
-    endwhile
-    normal! ^
-    endfunction
-function! s:GoUpSame1()
-    let current = getcurpos()[1]
-    let indent = s:IndentLevel(current)
-    "TODO: if current line is blank, get indent of next non-blank line, or 0 if reach EOF
-    while current != 0
-        normal! k
-        "let current -= 1
-        let current = getcurpos()[1]
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if s:IndentLevel(current) <= indent
-            normal! ^
-            break
-            endif
-    endwhile
-    normal! ^
-    endfunction
-function! s:GoUpZero1()
-    let current = getcurpos()[1]
-    while current != 0
-        normal! k
-        let current = getcurpos()[1]
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if getline(current) =~ '\v^\S'
-            break
-            endif
+function s:go_down_same(count = 1)
+    mark '
+    let num = 0
+    while num < a:count
+        let num += 1
+        call s:_go_less_1('+', 1)
         endwhile
-    normal! ^
-    endfunction
-function! s:GoDownZero1()
-    let current = getcurpos()[1]
-    while 1 == 1
-        let prior = current
-        normal! j
-        let current = getcurpos()[1]
-        if prior == current
-            break
-            endif
-        if getline(current) =~ '\v^\s*$'
-            continue
-            endif
-        if getline(current) =~ '\v^\S'
-            break
-            endif
-        endwhile
-    normal! ^
     endfunction
 
-set foldmethod=expr foldexpr=GetIndentFold(v:lnum)
-set foldtext=FoldText()
+function s:top_go_up(count = 1, mark = 1)
+    if a:mark
+        mark '
+        endif
+    let need = a:count
+    while need
+        " Move up at least one line, and continue until a top line.
+        if s:line() == 1 | return | endif
+        -
+        while ! s:is_top()
+            if s:line() == 1 | return | endif
+            -
+            endwhile
+        " Move up until next would be a non-top line.
+        if s:line() == 1 | return | endif
+        while s:is_top(getline(s:line_prev()))
+            -
+            if s:line() == 1 | return | endif
+            endwhile
+
+        let need -= 1
+        endwhile
+    endfunction
+function s:top_go_down(count = 1)
+    mark '
+    let need = a:count
+    const last = s:line('$')
+    while need && s:line() < last
+        " If at a top line, skip consecutive top lines.
+        while s:is_top() && s:line() < last
+            +
+            endwhile
+        " Now at a non-top line; search down for a top line.
+        while ! s:is_top() && s:line() < last
+            +
+            endwhile
+
+        let need -= 1
+        endwhile
+    endfunction
+
+function s:_go_less_1(direction, or_same = 0)
+    if a:direction ==# '-'
+        let end = 1
+    elseif a:direction ==# '+'
+        let end = s:line('$')
+    else
+        throw "Invalid direction: must be '+' or '-'"
+        endif
+    let lineno = s:line()
+    if lineno == end
+        return
+        endif
+    let target = s:indent_level(lineno)
+    if target && ! a:or_same
+        let target -= 1
+        endif
+    while 1
+        execute "normal!" a:direction
+        let lineno = s:line()
+        if lineno == end
+            break
+            endif
+        let text = getline(lineno)
+        if text =~ s:blank_line || text =~ s:close_line
+            continue
+            endif
+        if s:shift_count(text) <= target
+            break
+            endif
+        endwhile
+    endfunction
+
+set foldmethod=expr foldexpr=s:fold_level()
+set foldtext=s:fold_text()
 set fillchars+=fold:\ ,
 set commentstring=#\ %s
 
-let s:blank_line = '\v^[\t \]}),]*$'
+function s:line(expr = '.')
+    " Line number for expr (see line()), ignoring folded lines (other than the first in the fold).
+    let x = foldclosed(a:expr)
+    return x == -1 ? line(a:expr) : x
+    endfunction
+function s:line_prev(expr = '.')
+    " Previous line to expr, ignoring folded lines (other than the first in the fold).
+    let lineno = s:line(a:expr) - 1
+    let x = foldclosed(lineno)
+    return x == -1 ? lineno : x
+    endfunction
+function s:line_next(expr = '.')
+    " Next line to expr, ignoring folded lines (other than the first in the fold).
+    let lineno = s:line(a:expr)
+    let x = foldclosedend(lineno)
+    return x == -1 ? lineno + 1 : x
+    endfunction
 
-function! FoldText()
+let s:blank_line = '\v^[\t ]*$'
+let s:close_line = '\v^[\t ]*[\]}),]+$'
+function s:is_top(text = getline(s:line()))
+    return a:text !~ s:close_line && s:shift_count(a:text) == 0
+    endfunction
+function s:shift_count(text = getline(s:line()))
+    if a:text =~ s:blank_line
+        return -1
+        endif
+    " Count leading tabs as having width of &tabstop.
+    let tabs = len(matchstr(a:text, '\v^\t*'))
+    let spaces = len(matchstr(a:text, '\v^ *', tabs))
+    return (tabs * &tabstop + spaces) / shiftwidth()
+    endfunction
+
+
+function s:indent_level(lnum)
+    let lineno = a:lnum
+    const last = s:line('$')
+    if lineno < 1 || last < lineno
+        return 0
+        endif
+    let text = getline(lineno)
+    if text =~ s:close_line
+        " Return 1 + indent level for prior non-blank, non-close line.
+        let continue = 1
+        while continue
+            if lineno == 1
+                return 0
+                endif
+            let lineno -= 1
+            let text = getline(lineno)
+            let continue = text =~ s:close_line || text =~ s:blank_line
+            endwhile
+        return s:indent_level(lineno) + 1
+        endif
+    while text =~ s:blank_line
+        " Return indent level of next non-blank line.
+        if lineno == last
+            return 0
+            endif
+        let lineno += 1
+        let text = getline(lineno)
+        if text =~ s:close_line
+            return s:indent_level(lineno)
+            endif
+        endwhile
+    return s:shift_count(text)
+    endfunction
+function s:fold_level()
+    const line = getline(v:lnum)
+    if line =~ s:blank_line || line =~ s:close_line
+        return s:indent_level(v:lnum)
+        endif
+    const level = s:indent_level(v:lnum)
+    const next = s:indent_level(v:lnum + 1)
+    if level < next
+        return ">" . next
+        endif
+    return level
+    endfunction
+
+function s:fold_text()
     let text = getline(v:foldstart)
     let tabs = matchstr(text, '\v^\t*')
     if len(tabs) > 0
@@ -211,36 +237,4 @@ function! FoldText()
 
     let text .= '  '  " Don't crowd if fillchars isn't a space.
     return text
-    endfunction
-function! s:IndentLevel(lnum)
-    let line = getline(a:lnum)
-    " Count leading tabs as having width of &tabstop.
-    let tabs = len(matchstr(line, '\v^\t*'))
-    let spaces = len(matchstr(line, '\v^ *', tabs))
-    return (tabs * &tabstop + spaces) / shiftwidth()
-    endfunction
-function! s:NextNonBlankLine(lnum)
-    let numlines = line('$')
-    let current = a:lnum + 1
-    while current <= numlines
-        if getline(current) !~ s:blank_line
-            return current
-            endif
-        let current += 1
-        endwhile
-    return -1
-    endfunction
-function! GetIndentFold(lnum)
-    if getline(a:lnum) =~ s:blank_line
-        return -1
-        endif
-
-    let this_indent = s:IndentLevel(a:lnum)
-    let next_indent = s:IndentLevel(s:NextNonBlankLine(a:lnum))
-
-    if next_indent > this_indent
-        return '>' . next_indent
-    else
-        return this_indent
-        endif
     endfunction
