@@ -1,8 +1,14 @@
 Fold Indented Blocks
 ====
 
-Based on ideas from http://learnvimscriptthehardway.stevelosh.com/ (chapter 49).
+Fold lines by indentation.  Skip around by indentation level.
 
-Mappings:  If you don't like my preferences, change the code.  Patches welcome.
+Personal preferences are mixed in with self-contained code.
 
-Install:  Clone as ~/.vim/pack/NAME/start/fold-indent-block.
+Patches welcome.
+
+To install, clone as ~/.vim/pack/PACK_NAME/start/fold-indent-block.
+
+Related: [vim-indent-object](https://github.com/michaeljsmith/vim-indent-object)
+
+Partially based on ideas from [Learn Vimscript the Hard Way](https://learnvimscriptthehardway.stevelosh.com/chapters/49.html).
