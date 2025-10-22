@@ -15,6 +15,8 @@ nnoremap <silent> <space> za
 
     nnoremap <silent> <leader><leader> :<c-u>call <sid>top_go_up(v:count1)<cr>
 
+let s:min_scroll_offset = [1, 5]  " [up, down]
+
 function s:go_up_less(count = 1)
     mark '
     if s:is_top()
@@ -58,6 +60,15 @@ function s:top_go_up(count = 1, mark = 1)
     if a:mark
         mark '
         endif
+    let min_scroll_offset = s:min_scroll_offset[0]
+    let saved_scrolloff = &l:scrolloff
+    if min_scroll_offset > (&l:scrolloff > -1 ? &l:scrolloff : &scrolloff)
+        let &l:scrolloff = min_scroll_offset
+        endif
+    call s:do_top_go_up(a:count)
+    let &l:scrolloff = saved_scrolloff
+    endfunction
+function s:do_top_go_up(count)
     let need = a:count
     while need
         " Move up at least one line, and continue until a top line.
@@ -79,6 +90,12 @@ function s:top_go_up(count = 1, mark = 1)
     endfunction
 function s:top_go_down(count = 1)
     mark '
+    let min_scroll_offset = s:min_scroll_offset[1]
+    let saved_scrolloff = &l:scrolloff
+    if min_scroll_offset > (&l:scrolloff > -1 ? &l:scrolloff : &scrolloff)
+        let &l:scrolloff = min_scroll_offset
+        endif
+
     let need = a:count
     const last = s:line('$')
     while need && s:line() < last
@@ -93,13 +110,17 @@ function s:top_go_down(count = 1)
 
         let need -= 1
         endwhile
+
+    let &l:scrolloff = saved_scrolloff
     endfunction
 
 function s:_go_less_1(direction, or_same = 0)
     if a:direction ==# 'k'
         let end = 1
+        let min_scroll_offset = s:min_scroll_offset[0]
     elseif a:direction ==# 'j'
         let end = s:line('$')
+        let min_scroll_offset = s:min_scroll_offset[1]
     else
         throw "Invalid direction: must be 'j' or 'k'"
         endif
@@ -108,6 +129,12 @@ function s:_go_less_1(direction, or_same = 0)
     if lineno == end
         return
         endif
+
+    let saved_scrolloff = &l:scrolloff
+    if min_scroll_offset > (&l:scrolloff > -1 ? &l:scrolloff : &scrolloff)
+        let &l:scrolloff = min_scroll_offset
+        endif
+
     let target = s:indent_level(lineno)
     if target && ! a:or_same
         let target -= 1
@@ -126,6 +153,8 @@ function s:_go_less_1(direction, or_same = 0)
             break
             endif
         endwhile
+
+    let &l:scrolloff = saved_scrolloff
     endfunction
 
 set foldmethod=expr foldexpr=s:fold_level()
