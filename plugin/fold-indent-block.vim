@@ -17,6 +17,7 @@ nnoremap <silent> <space> za
 
 let s:min_scroll_offset = [1, 5]  " [up, down]
 
+" TODO: Write go_up_level(count) which goes to that indentation level, instead of that many times.  Example: go_up_level(1) goes to the prior "    def..." in Python.  Then change mapping for ,s.  Similar for go_down_level and ,g.
 function s:go_up_less(count = 1)
     mark '
     if s:is_top()
@@ -157,10 +158,8 @@ function s:_go_less_1(direction, or_same = 0)
     let &l:scrolloff = saved_scrolloff
     endfunction
 
-set foldmethod=expr foldexpr=s:fold_level()
-set foldtext=s:fold_text()
-set fillchars+=fold:\ ,
-set commentstring=#\ %s
+command FoldIndent set foldmethod=expr foldexpr=<sid>fold_level() foldtext=<sid>fold_text() fillchars+=fold:\ , commentstring=#\ %s
+FoldIndent
 
 function s:line(expr = '.')
     " Line number for expr (see line()), ignoring folded lines (other than the first in the fold).
@@ -248,8 +247,15 @@ function s:fold_text()
     if len(tabs) > 0
         let text = substitute(text, '\v^\t*', repeat(' ', &tabstop * len(tabs)), '')
         endif
-    let text .= '… [' . (v:foldend + 1 - v:foldstart) . ' lines]'
+    let lines = v:foldend + 1 - v:foldstart
 
+    " If folded lines are 3 or less, concatenate them.
+    if lines <= 5
+        let text .= join(map(getline(v:foldstart + 1, v:foldend), "substitute(v:val, '\\v^[ \\t]*', '  ', '')"), '')
+        return text
+        endif
+
+    let text .= '… [' . lines . ' lines]'
     " If current line isn't a comment and the next line is a comment, then include the next line.
     if getline(v:foldstart) !~ '\v^\s*(#|/[/*])'
         let next = substitute(getline(v:foldstart + 1), '\v^\s+', '', '')
